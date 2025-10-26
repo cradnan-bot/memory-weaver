@@ -131,7 +131,7 @@ body {
 
 .google-btn {
   background: white;
-  border: 1px solid #ddd;
+  border: 2px solid #ddd;
   border-radius: 50px;
   padding: 1rem 1.5rem;
   color: #333;
@@ -143,23 +143,29 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  min-height: 50px;
 }
 
 .google-btn:hover {
   background: #f8f8f8;
-  border-color: #ccc;
+  border-color: #999;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .google-icon {
   width: 20px;
   height: 20px;
-  background: linear-gradient(45deg, #4285f4, #ea4335, #fbbc05, #34a853);
+  background: conic-gradient(from 0deg, #4285f4, #ea4335, #fbbc05, #34a853);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: bold;
-  font-family: 'Google Sans', sans-serif;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .email-section {

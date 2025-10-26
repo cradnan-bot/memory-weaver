@@ -60,15 +60,24 @@ function App() {
 
   const signInWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Attempting Google OAuth...')
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: `${window.location.origin}/`
         }
       })
-      if (error) throw error
+
+      if (error) {
+        console.error('Google OAuth error:', error)
+        alert(`Google sign-in error: ${error.message}`)
+        return
+      }
+
+      console.log('Google OAuth initiated successfully')
     } catch (error) {
-      alert(error.message)
+      console.error('Google OAuth failed:', error)
+      alert(`Failed to initiate Google sign-in: ${error.message}`)
     }
   }
 
@@ -76,6 +85,13 @@ function App() {
     try {
       if (!email) {
         alert('Please enter your email address')
+        return
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        alert('Please enter a valid email address')
         return
       }
 
@@ -89,6 +105,7 @@ function App() {
       // Clear the email field
       setEmail('')
     } catch (error) {
+      console.error('Email submission error:', error)
       alert(error.message)
     }
   }
