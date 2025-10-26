@@ -22,9 +22,8 @@ function App() {
       // Store the email in backend/console
       console.log('Email submitted to backend:', email)
 
-      // For now, just mark as submitted
+      // Go directly to welcome screen without alert
       setIsSubmitted(true)
-      alert(`Welcome! Email ${email} has been recorded.`)
 
     } catch (error) {
       console.error('Email submission error:', error)
