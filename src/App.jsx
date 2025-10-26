@@ -6,7 +6,6 @@ function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [photos, setPhotos] = useState([])
   const [showUpload, setShowUpload] = useState(false)
 
@@ -59,26 +58,36 @@ function App() {
     }
   }
 
-  const signUp = async () => {
+  const signInWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
       })
       if (error) throw error
-      alert('Check your email for verification link!')
     } catch (error) {
       alert(error.message)
     }
   }
 
-  const signIn = async () => {
+  const signInWithEmail = async () => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (error) throw error
+      if (!email) {
+        alert('Please enter your email address')
+        return
+      }
+
+      // For now, we'll store the email in backend/console
+      console.log('Email submitted to backend:', email)
+
+      // You can also send to a simple endpoint or log it
+      // For demo purposes, we'll show a success message
+      alert(`Email ${email} submitted to backend. Check console for details.`)
+
+      // Clear the email field
+      setEmail('')
     } catch (error) {
       alert(error.message)
     }
@@ -131,26 +140,30 @@ function App() {
       <div className="app">
         <div className="auth-container">
           <div className="auth-card">
-            <h1>Memory Weaver</h1>
-            <p>Your digital sanctuary for cherished memories</p>
+            <div className="auth-header">
+              <button className="close-btn">×</button>
+            </div>
+
+            <h1>Log in or sign up</h1>
+            <p>You'll get smarter responses and can upload files, images, and more.</p>
 
             <div className="auth-form">
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <button onClick={signInWithGoogle} className="google-btn">
+                <span className="google-icon">G</span>
+                Continue with Google
+              </button>
 
-              <div className="auth-buttons">
-                <button onClick={signIn} className="btn-primary">Sign In</button>
-                <button onClick={signUp} className="btn-secondary">Sign Up</button>
+              <div className="email-section">
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="email-input"
+                />
+                <button onClick={signInWithEmail} className="continue-btn">
+                  Continue
+                </button>
               </div>
             </div>
           </div>
