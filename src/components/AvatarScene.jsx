@@ -1,6 +1,7 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Environment, ContactShadows, PerspectiveCamera } from '@react-three/drei'
-import { Suspense } from 'react'
+import { Suspense, useState, useEffect } from 'react'
+import { ReadyPlayerMeAvatar, AvatarCreatorModal } from './ReadyPlayerMeAvatar'
 
 // Simple room geometry
 function Room() {
@@ -111,6 +112,22 @@ function Loader() {
 
 // Main 3D Scene Component
 export default function AvatarScene() {
+    const [avatarUrl, setAvatarUrl] = useState(null)
+    const [showCreator, setShowCreator] = useState(false)
+
+    const handleAvatarCreated = (url) => {
+        setAvatarUrl(url)
+        localStorage.setItem('memoryWeaverAvatar', url) // Save for later
+    }
+
+    // Load saved avatar on component mount
+    useEffect(() => {
+        const savedAvatar = localStorage.getItem('memoryWeaverAvatar')
+        if (savedAvatar) {
+            setAvatarUrl(savedAvatar)
+        }
+    }, [])
+
     return (
         <div className="avatar-3d-container">
             <Suspense fallback={<Loader />}>
@@ -132,7 +149,17 @@ export default function AvatarScene() {
                     {/* Scene objects */}
                     <Room />
                     <Chair />
-                    <AvatarPlaceholder />
+
+                    {/* Avatar - Ready Player Me or Placeholder */}
+                    {avatarUrl ? (
+                        <ReadyPlayerMeAvatar
+                            avatarUrl={avatarUrl}
+                            position={[0, -0.5, 0]}
+                            scale={1}
+                        />
+                    ) : (
+                        <AvatarPlaceholder />
+                    )}
 
                     {/* Contact shadows for realism */}
                     <ContactShadows
@@ -162,16 +189,28 @@ export default function AvatarScene() {
             <div className="avatar-controls">
                 <h3>AI Avatar Controls</h3>
                 <div className="control-buttons">
+                    <button
+                        className="control-btn create-avatar"
+                        onClick={() => setShowCreator(true)}
+                    >
+                        🎭 {avatarUrl ? 'Change Avatar' : 'Create Avatar'}
+                    </button>
                     <button className="control-btn">👋 Wave</button>
                     <button className="control-btn">🗣️ Speak</button>
                     <button className="control-btn">📸 Show Photos</button>
-                    <button className="control-btn">⚙️ Customize</button>
                 </div>
                 <div className="avatar-info">
-                    <p><strong>Ready Player Me Integration:</strong> Ready for avatar import</p>
-                    <p><strong>Status:</strong> Placeholder model active</p>
+                    <p><strong>Ready Player Me:</strong> {avatarUrl ? '✅ Avatar Loaded' : '⏳ Create Avatar'}</p>
+                    <p><strong>Status:</strong> {avatarUrl ? 'AI Avatar Active' : 'Placeholder Active'}</p>
                 </div>
             </div>
+
+            {/* Avatar Creator Modal */}
+            <AvatarCreatorModal
+                isOpen={showCreator}
+                onClose={() => setShowCreator(false)}
+                onAvatarCreated={handleAvatarCreated}
+            />
         </div>
     )
 }
