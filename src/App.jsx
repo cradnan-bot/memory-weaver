@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import AvatarScene from './components/AvatarScene'
 
 function App() {
   const [email, setEmail] = useState('')
@@ -222,16 +223,12 @@ function App() {
         return (
           <div className="content-section">
             <div className="section-header">
-              <h2>AI Avatar</h2>
-            </div>
-            <div className="avatar-section">
-              <div className="avatar-placeholder">
-                <div className="avatar-icon">👤</div>
-                <h3>Create Your AI Avatar</h3>
-                <p>Generate an AI avatar that can narrate your memories</p>
-                <button className="primary-btn">Generate Avatar</button>
+              <h2>AI Avatar - 3D Interactive Scene</h2>
+              <div className="avatar-status">
+                <span className="status-indicator">🟢 3D Scene Active</span>
               </div>
             </div>
+            <AvatarScene />
           </div>
         )
 
