@@ -7,18 +7,23 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 console.log('Supabase Config Debug:')
 console.log('URL exists:', !!supabaseUrl)
 console.log('Key exists:', !!supabaseAnonKey)
-console.log('URL value:', supabaseUrl)
-console.log('Key starts with:', supabaseAnonKey?.substring(0, 10) + '...')
 
 // Provide better error handling for missing environment variables
-if (!supabaseUrl || supabaseUrl === 'your-supabase-url') {
-    console.error('Missing VITE_SUPABASE_URL environment variable')
-    throw new Error('Missing VITE_SUPABASE_URL environment variable')
+if (!supabaseUrl || supabaseUrl === 'your-supabase-project-url') {
+    console.error('⚠️  MISSING SUPABASE CONFIGURATION')
+    console.error('Please create .env file with your Supabase credentials:')
+    console.error('1. Copy .env.template to .env')
+    console.error('2. Add your Supabase URL and anon key')
+    console.error('3. Restart the development server')
 }
 
 if (!supabaseAnonKey || supabaseAnonKey === 'your-supabase-anon-key') {
-    console.error('Missing VITE_SUPABASE_ANON_KEY environment variable')
-    throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable')
+    console.error('⚠️  MISSING SUPABASE ANON KEY')
+    console.error('Please add VITE_SUPABASE_ANON_KEY to your .env file')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Create client with fallback for development
+export const supabase = createClient(
+    supabaseUrl || 'https://placeholder.supabase.co',
+    supabaseAnonKey || 'placeholder-key'
+)

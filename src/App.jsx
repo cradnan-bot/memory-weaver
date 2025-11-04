@@ -1,20 +1,65 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import AvatarScene from './components/AvatarScene'
+import { supabase } from './supabase'
 
 function App() {
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('photos')
   const [photos, setPhotos] = useState([])
   const [albums, setAlbums] = useState([])
   const [memoryClips, setMemoryClips] = useState([])
   const [recycleBin, setRecycleBin] = useState([])
 
+  // Check for existing session on app load
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error('Session check error:', error)
+        } else if (session) {
+          setUser(session.user)
+          setEmail(session.user.email)
+          setIsLoggedIn(true)
+        }
+      } catch (error) {
+        console.error('Session check failed:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          setUser(session.user)
+          setEmail(session.user.email)
+          setIsLoggedIn(true)
+        } else {
+          setUser(null)
+          setEmail('')
+          setIsLoggedIn(false)
+        }
+        setLoading(false)
+      }
+    )
+
+    return () => subscription?.unsubscribe()
+  }, [])
+
   const handleLogin = async () => {
     try {
-      if (!email) {
-        alert('Please enter your email address')
+      if (!email || !password) {
+        alert('Please enter both email and password')
         return
       }
 
@@ -24,12 +69,75 @@ function App() {
         return
       }
 
-      console.log('Email submitted to backend:', email)
-      setIsLoggedIn(true)
+      setLoading(true)
+
+      // Try to sign in with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      })
+
+      if (error) {
+        // If user doesn't exist, create account
+        if (error.message.includes('Invalid login credentials')) {
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+          })
+
+          if (signUpError) {
+            throw signUpError
+          }
+
+          if (signUpData.user && !signUpData.session) {
+            alert('Please check your email for verification link!')
+            return
+          }
+
+          alert('Account created successfully!')
+        } else {
+          throw error
+        }
+      }
+
+      console.log('Authentication successful:', data)
 
     } catch (error) {
       console.error('Login error:', error)
-      alert('Something went wrong. Please try again.')
+      alert(`Authentication failed: ${error.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: prompt('Enter new password:')
+      })
+
+      if (error) throw error
+
+      alert('Password updated successfully!')
+      setShowChangePassword(false)
+    } catch (error) {
+      alert(`Password change failed: ${error.message}`)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+
+      setIsLoggedIn(false)
+      setUser(null)
+      setEmail('')
+      setPassword('')
+      setActiveTab('photos')
+    } catch (error) {
+      console.error('Logout error:', error)
+      alert('Logout failed')
     }
   }
 
@@ -88,6 +196,19 @@ function App() {
     }
   }
 
+  // Loading screen while checking authentication
+  if (loading) {
+    return (
+      <div className="app loading-screen">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <h2>Memory Weaver</h2>
+          <p>Loading your memories...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!isLoggedIn) {
     return (
       <div className="app">
@@ -101,18 +222,37 @@ function App() {
             <p>Access your digital sanctuary for cherished memories</p>
 
             <div className="auth-form">
-              <div className="email-section">
+              <div className="input-section">
                 <input
                   type="email"
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="email-input"
+                  className="auth-input"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="auth-input"
                   onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
                 />
-                <button onClick={handleLogin} className="continue-btn">
-                  Continue
+                <button
+                  onClick={handleLogin}
+                  className="continue-btn"
+                  disabled={loading}
+                >
+                  {loading ? 'Please wait...' : 'Continue'}
                 </button>
+                <div className="auth-footer">
+                  <p className="auth-note">
+                    � Secure authentication powered by Supabase
+                  </p>
+                  <p className="auth-help">
+                    New user? An account will be created automatically
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -357,6 +497,36 @@ function App() {
           </nav>
 
           <div className="sidebar-footer">
+            <div className="user-info">
+              <div className="user-email">
+                <span className="user-icon">👤</span>
+                <span className="email-text">{email}</span>
+              </div>
+              <div className="user-actions">
+                <button
+                  onClick={() => setShowChangePassword(!showChangePassword)}
+                  className="user-action-btn"
+                  title="Change Password"
+                >
+                  🔑
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="user-action-btn logout-btn"
+                  title="Logout"
+                >
+                  🚪
+                </button>
+              </div>
+              {showChangePassword && (
+                <div className="change-password-panel">
+                  <p>🔐 Supabase Authentication</p>
+                  <button onClick={handleChangePassword} className="admin-contact-btn">
+                    Change Password
+                  </button>
+                </div>
+              )}
+            </div>
             <div className="storage-info">
               <p>Storage</p>
               <div className="storage-bar">

@@ -41,6 +41,52 @@ body {
   background: rgba(0, 0, 0, 0.8);
 }
 
+/* Loading Screen */
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1.5rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.loading-container p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
 .auth-card {
   background: white;
   padding: 3rem;
@@ -88,13 +134,15 @@ body {
   line-height: 1.5;
 }
 
-.email-section {
+.email-section,
+.input-section {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.email-input {
+.email-input,
+.auth-input {
   background: white;
   border: 1px solid #ddd;
   border-radius: 50px;
@@ -104,7 +152,8 @@ body {
   transition: border-color 0.3s ease;
 }
 
-.email-input:focus {
+.email-input:focus,
+.auth-input:focus {
   outline: none;
   border-color: #666;
 }
@@ -123,6 +172,70 @@ body {
 
 .continue-btn:hover {
   background: #555;
+}
+
+.continue-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Auth Footer */
+.auth-footer {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.auth-note {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.auth-help {
+  font-size: 0.85rem;
+  color: #888;
+  font-style: italic;
+}
+
+.change-password-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.change-password-btn:hover {
+  color: #333;
+}
+
+.change-password-info {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.contact-admin-btn {
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.contact-admin-btn:hover {
+  background: #3367d6;
 }
 
 /* Main App Layout */
@@ -228,6 +341,88 @@ body {
 .sidebar-footer {
   padding: 1.5rem;
   border-top: 1px solid var(--border-color);
+}
+
+/* User Info Section */
+.user-info {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.user-email {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.user-icon {
+  font-size: 1.2rem;
+}
+
+.email-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.user-action-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-action-btn:hover {
+  background: var(--sidebar-active);
+  border-color: var(--primary-blue);
+}
+
+.logout-btn {
+  color: #dc3545;
+}
+
+.logout-btn:hover {
+  background: #fff5f5;
+  border-color: #dc3545;
+}
+
+.change-password-panel {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  font-size: 0.85rem;
+}
+
+.admin-contact-btn {
+  background: var(--primary-blue);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.admin-contact-btn:hover {
+  background: #3367d6;
 }
 
 .storage-info p {
