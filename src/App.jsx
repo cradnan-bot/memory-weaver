@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import AvatarScene from './components/AvatarScene'
+import DrawingRoom from './components/3d/DrawingRoom'
 import { supabase } from './supabase'
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('photos')
+  const [showTraditionalUI, setShowTraditionalUI] = useState(false)
   const [photos, setPhotos] = useState([])
   const [albums, setAlbums] = useState([])
   const [memoryClips, setMemoryClips] = useState([])
@@ -141,24 +143,42 @@ function App() {
     }
   }
 
-  const handleAddPhotos = () => {
+  const handleAddPhotos = async () => {
     const input = document.createElement('input')
     input.type = 'file'
     input.multiple = true
     input.accept = 'image/*'
-    input.onchange = (e) => {
+
+    input.onchange = async (e) => {
       const files = Array.from(e.target.files)
+
+      // For now, use local URLs - later we'll integrate Supabase storage
       const newPhotos = files.map((file, index) => ({
         id: Date.now() + index,
         name: file.name,
         url: URL.createObjectURL(file),
         size: file.size,
         type: file.type,
-        dateAdded: new Date().toISOString()
+        dateAdded: new Date().toISOString(),
+        file: file // Keep reference for future upload
       }))
+
       setPhotos(prev => [...prev, ...newPhotos])
+
+      // TODO: Upload to Supabase storage
+      console.log('Photos added locally, Supabase upload coming next')
     }
+
     input.click()
+  }
+
+  const handlePhotoClick = async (photo) => {
+    console.log('Photo clicked in 3D scene:', photo.name)
+
+    // TODO: Generate AI narration here
+    alert(`Photo: ${photo.name}\n\nAI Narration will be added next!\n\n*Bruno barks excitedly about this memory*`)
+
+    // TODO: Text-to-speech integration
   }
 
   const handleDeletePhoto = (photoId) => {
@@ -430,127 +450,294 @@ function App() {
     }
   }
 
-  return (
-    <div className="app memory-weaver-app">
-      <div className="app-layout">
-        {/* Sidebar */}
-        <div className="sidebar">
-          <div className="sidebar-header">
-            <h1>Memory Weaver</h1>
-            <div className="user-info">
-              <span>{email}</span>
-            </div>
+  // Main logged-in view - either 3D Room or Traditional UI
+  if (isLoggedIn) {
+    if (!showTraditionalUI) {
+      // 3D Drawing Room Experience
+      return (
+        <>
+          {/* 3D Drawing Room Scene */}
+          <DrawingRoom
+            photos={photos}
+            onPhotoClick={handlePhotoClick}
+            user={user}
+          />
+
+          {/* UI Overlay */}
+          <div style={{
+            position: 'fixed',
+            top: 20,
+            right: 20,
+            zIndex: 1000,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px'
+          }}>
+            <button
+              onClick={() => setActiveTab('photos')}
+              style={{
+                padding: '10px 20px',
+                background: 'rgba(0,0,0,0.7)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif'
+              }}
+            >
+              📷 Add Photos ({photos.length})
+            </button>
+
+            <button
+              onClick={() => setShowTraditionalUI(true)}
+              style={{
+                padding: '10px 20px',
+                background: 'rgba(66, 133, 244, 0.8)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif'
+              }}
+            >
+              📱 Traditional View
+            </button>
+
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '10px 20px',
+                background: 'rgba(139,0,0,0.7)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif'
+              }}
+            >
+              🚪 Logout
+            </button>
           </div>
 
-          <nav className="sidebar-nav">
-            <button
-              className={`nav-item ${activeTab === 'photos' ? 'active' : ''}`}
-              onClick={() => setActiveTab('photos')}
-            >
-              <span className="nav-icon">📷</span>
-              Photos
-              <span className="count">{photos.length}</span>
-            </button>
+          {/* Photo Management Panel (Toggle visibility) */}
+          {activeTab === 'photos' && (
+            <div style={{
+              position: 'fixed',
+              left: 20,
+              top: 80,
+              width: '320px',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              background: 'rgba(0,0,0,0.9)',
+              padding: '20px',
+              borderRadius: '10px',
+              zIndex: 1000,
+              fontFamily: 'Inter, sans-serif',
+              color: 'white'
+            }}>
+              <h3 style={{ margin: '0 0 15px 0' }}>📷 Photo Management</h3>
 
-            <button
-              className={`nav-item ${activeTab === 'memory-clips' ? 'active' : ''}`}
-              onClick={() => setActiveTab('memory-clips')}
-            >
-              <span className="nav-icon">🎬</span>
-              Memory Clips
-              <span className="count">{memoryClips.length}</span>
-            </button>
+              <button
+                onClick={handleAddPhotos}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: '#4285f4',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  marginBottom: '15px',
+                  fontWeight: '600'
+                }}
+              >
+                + Upload Photos
+              </button>
 
-            <button
-              className={`nav-item ${activeTab === 'albums' ? 'active' : ''}`}
-              onClick={() => setActiveTab('albums')}
-            >
-              <span className="nav-icon">📁</span>
-              Albums
-              <span className="count">{albums.length}</span>
-            </button>
-
-            <button
-              className={`nav-item ${activeTab === 'avatar' ? 'active' : ''}`}
-              onClick={() => setActiveTab('avatar')}
-            >
-              <span className="nav-icon">👤</span>
-              AI Avatar
-            </button>
-
-            <button
-              className={`nav-item ${activeTab === 'sharing' ? 'active' : ''}`}
-              onClick={() => setActiveTab('sharing')}
-            >
-              <span className="nav-icon">🔗</span>
-              Sharing
-            </button>
-
-            <button
-              className={`nav-item ${activeTab === 'recycle-bin' ? 'active' : ''}`}
-              onClick={() => setActiveTab('recycle-bin')}
-            >
-              <span className="nav-icon">🗑️</span>
-              Recycle Bin
-              <span className="count">{recycleBin.length}</span>
-            </button>
-          </nav>
-
-          <div className="sidebar-footer">
-            <div className="user-info">
-              <div className="user-email">
-                <span className="user-icon">👤</span>
-                <span className="email-text">{email}</span>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
+                gap: '10px'
+              }}>
+                {photos.map(photo => (
+                  <div key={photo.id} style={{
+                    position: 'relative',
+                    aspectRatio: '1',
+                    borderRadius: '5px',
+                    overflow: 'hidden',
+                    background: '#333'
+                  }}>
+                    <img
+                      src={photo.url}
+                      alt={photo.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => handlePhotoClick(photo)}
+                    />
+                  </div>
+                ))}
               </div>
-              <div className="user-actions">
-                <button
-                  onClick={() => setShowChangePassword(!showChangePassword)}
-                  className="user-action-btn"
-                  title="Change Password"
-                >
-                  🔑
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="user-action-btn logout-btn"
-                  title="Logout"
-                >
-                  🚪
-                </button>
+
+              <button
+                onClick={() => setActiveTab('')}
+                style={{
+                  marginTop: '15px',
+                  padding: '8px 16px',
+                  background: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer'
+                }}
+              >
+                ✕ Close Panel
+              </button>
+            </div>
+          )}
+        </>
+      )
+    }
+
+    // Traditional UI View
+    return (
+      <div className="app memory-weaver-app">
+        <div className="app-layout">
+          {/* Sidebar */}
+          <div className="sidebar">
+            <div className="sidebar-header">
+              <h1>Memory Weaver</h1>
+              <div className="user-info">
+                <span>{email}</span>
               </div>
-              {showChangePassword && (
-                <div className="change-password-panel">
-                  <p>🔐 Supabase Authentication</p>
-                  <button onClick={handleChangePassword} className="admin-contact-btn">
-                    Change Password
+            </div>
+
+            <nav className="sidebar-nav">
+              <button
+                onClick={() => setShowTraditionalUI(false)}
+                className="nav-item"
+                style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}
+              >
+                <span className="nav-icon">🏠</span>
+                3D Memory Room
+              </button>
+
+              <button
+                className={`nav-item ${activeTab === 'photos' ? 'active' : ''}`}
+                onClick={() => setActiveTab('photos')}
+              >
+                <span className="nav-icon">📷</span>
+                Photos
+                <span className="count">{photos.length}</span>
+              </button>
+
+              <button
+                className={`nav-item ${activeTab === 'memory-clips' ? 'active' : ''}`}
+                onClick={() => setActiveTab('memory-clips')}
+              >
+                <span className="nav-icon">🎬</span>
+                Memory Clips
+                <span className="count">{memoryClips.length}</span>
+              </button>
+
+              <button
+                className={`nav-item ${activeTab === 'albums' ? 'active' : ''}`}
+                onClick={() => setActiveTab('albums')}
+              >
+                <span className="nav-icon">📁</span>
+                Albums
+                <span className="count">{albums.length}</span>
+              </button>
+
+              <button
+                className={`nav-item ${activeTab === 'avatar' ? 'active' : ''}`}
+                onClick={() => setActiveTab('avatar')}
+              >
+                <span className="nav-icon">👤</span>
+                AI Avatar
+              </button>
+
+              <button
+                className={`nav-item ${activeTab === 'sharing' ? 'active' : ''}`}
+                onClick={() => setActiveTab('sharing')}
+              >
+                <span className="nav-icon">🔗</span>
+                Sharing
+              </button>
+
+              <button
+                className={`nav-item ${activeTab === 'recycle-bin' ? 'active' : ''}`}
+                onClick={() => setActiveTab('recycle-bin')}
+              >
+                <span className="nav-icon">🗑️</span>
+                Recycle Bin
+                <span className="count">{recycleBin.length}</span>
+              </button>
+            </nav>
+
+            <div className="sidebar-footer">
+              <div className="user-info">
+                <div className="user-email">
+                  <span className="user-icon">👤</span>
+                  <span className="email-text">{email}</span>
+                </div>
+                <div className="user-actions">
+                  <button
+                    onClick={() => setShowChangePassword(!showChangePassword)}
+                    className="user-action-btn"
+                    title="Change Password"
+                  >
+                    🔑
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="user-action-btn logout-btn"
+                    title="Logout"
+                  >
+                    🚪
                   </button>
                 </div>
-              )}
-            </div>
-            <div className="storage-info">
-              <p>Storage</p>
-              <div className="storage-bar">
-                <div className="storage-used" style={{ width: '15%' }}></div>
+                {showChangePassword && (
+                  <div className="change-password-panel">
+                    <p>🔐 Supabase Authentication</p>
+                    <button onClick={handleChangePassword} className="admin-contact-btn">
+                      Change Password
+                    </button>
+                  </div>
+                )}
               </div>
-              <small>2.4 GB used • 100 GB available</small>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="main-content">
-          <div className="top-bar">
-            <div className="search-section">
-              <input type="text" placeholder="Search your memories..." className="search-input" />
-              <button className="filter-btn">🔍 Quick Filter</button>
+              <div className="storage-info">
+                <p>Storage</p>
+                <div className="storage-bar">
+                  <div className="storage-used" style={{ width: '15%' }}></div>
+                </div>
+                <small>2.4 GB used • 100 GB available</small>
+              </div>
             </div>
           </div>
 
-          {renderContent()}
+          {/* Main Content */}
+          <div className="main-content">
+            <div className="top-bar">
+              <div className="search-section">
+                <input type="text" placeholder="Search your memories..." className="search-input" />
+                <button className="filter-btn">🔍 Quick Filter</button>
+              </div>
+            </div>
+
+            {renderContent()}
+          </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
+
+  // Login/signup screen (when not logged in - this was already implemented above)
+  // This return statement should not be reached, but included for completeness
+  return null
 }
 
 export default App
