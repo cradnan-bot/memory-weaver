@@ -176,7 +176,7 @@ function DrawingRoom({ avatarUrl }) {
                 <MyAvatar />
                 <BrunoAvatar />
             </Suspense>
-            
+
             {/* Ready Player Me Avatar or Placeholder */}
             {avatarUrl ? (
                 <ReadyPlayerMeAvatar
